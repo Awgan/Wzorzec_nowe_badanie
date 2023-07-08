@@ -48,6 +48,9 @@ Sub wskaz_plik_konfiguracyjny()
 flagKonfWczyt = False
 flagKonfPrzygot = False
 flagWzorPrzygot = False
+flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bêdzie mia³ znaczenia
+                            'True - pozwala na dodawanie kolejnych badania do utworzonego ju¿ pliku
+                            'False - czyœci plik i dodaje badania od nowa
 
     
     Set WB_menu = ActiveWorkbook
@@ -217,13 +220,13 @@ Next wName
         If flagWB = False Then
             Set WB_konf = Workbooks.Open(pathActual & pathSlashType & plikKonfig)
             'flagK = True
-            Debug.Print "WB_konf.name #1: " & WB_konf.name
+            'Debug.Print "WB_konf.name #1: " & WB_konf.name
             
         Else
                 
             Set WB_konf = Workbooks(plikKonfig)
             WB_konf.Activate
-            Debug.Print "WB_konf.name #2: " & WB_konf.name
+            'Debug.Print "WB_konf.name #2: " & WB_konf.name
         
         End If
         
@@ -286,19 +289,21 @@ Next wName
         ActiveWindow.FreezePanes = False
                 
         
-        Dim lastColumn, lastrow As Integer
+        Dim lastColumn, lastRow As Integer
         lastColumn = shPracownie.Cells(2, Columns.Count).End(xlToLeft).Column - 1 'zaczynamy od 2 wiersza, poniewa¿ w 1 wierszu zdarzaj¹ siê artefakty, np. w postaci zer(0)
-        lastrow = shPracownie.Cells(Rows.Count, 1).End(xlUp).Row - 1
+        lastRow = shPracownie.Cells(Rows.Count, 1).End(xlUp).Row - 1
         
         Dim rng As Range
         Set rng = shPracownie.Range("A1")
         
         Dim i, j As Integer
         For i = 0 To lastColumn
-            For j = 1 To lastrow
+            For j = 1 To lastRow
         
             'SprawdŸ b³êdne komórki i zaznacz na czerwono
-                If rng.Offset(j, i).Value = "" Or Left(CStr(rng.Offset(j, i).Value), 2) <> "X-" Or Left(CStr(rng.Offset(j, i).Value), 7) = "X-LIMBA" Then
+                If rng.Offset(j, i).Value = "" Or _
+                i <> 0 And Left(CStr(rng.Offset(j, i).Value), 2) <> "X-" Or Left(CStr(rng.Offset(j, i).Value), 7) = "X-LIMBA" _
+                Or i = 0 And czy_pakiet(CStr(rng.Offset(j, i).Value), WB_menu.Worksheets(strPakiety)) Then
                     
                     'Debug.Print "Jest b³êdna komórka"
                     rng.Offset(j, i).Interior.Color = RGB(255, 100, 100)
@@ -365,8 +370,8 @@ Sub stworzAK2()
 'Czy dopisaæ kolejne badania do pliku WzorzecAK2
 Dim odp As Integer
 odp = 0
-If Not flagKolejneBadanie Then
-
+If Not flagKolejneBadanie Then  'Ustawione na True w pierwszym buttonie, na pocz¹tku kodu
+                                'Teraz od samego pocz¹tku mo¿na dodawaæ badania do pliku WzorzecAK2
     odp = 7
 
 Else
@@ -379,24 +384,24 @@ End If
 If odp = 7 Then     '7 = No; formatowanie pliku WzorzecAK2
 
 'Czyszczenie pliku WzorzecAK2
-    Dim lastrow
-    lastrow = WB_AK2.Worksheets("Metody").Cells(Rows.Count, 1).End(xlUp).Row
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    Dim lastRow
+    lastRow = WB_AK2.Worksheets("Metody").Cells(Rows.Count, 1).End(xlUp).Row
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
-    WB_AK2.Worksheets("Metody").Range("A" & Cells(4, 1).Row & ":" & "P" & Cells(lastrow, 1).Row).Clear
+    WB_AK2.Worksheets("Metody").Range("A" & Cells(4, 1).Row & ":" & "P" & Cells(lastRow, 1).Row).Clear
     
-    lastrow = WB_AK2.Worksheets("ParametryWMetodach").Cells(Rows.Count, 1).End(xlUp).Row
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    lastRow = WB_AK2.Worksheets("ParametryWMetodach").Cells(Rows.Count, 1).End(xlUp).Row
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
-    WB_AK2.Worksheets("ParametryWMetodach").Range("A" & Cells(4, 1).Row & ":" & "I" & Cells(lastrow, 1).Row).Clear
+    WB_AK2.Worksheets("ParametryWMetodach").Range("A" & Cells(4, 1).Row & ":" & "I" & Cells(lastRow, 1).Row).Clear
     
-    lastrow = WB_AK2.Worksheets("PowiazaniaMetod").Cells(Rows.Count, 1).End(xlUp).Row
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    lastRow = WB_AK2.Worksheets("PowiazaniaMetod").Cells(Rows.Count, 1).End(xlUp).Row
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
-    WB_AK2.Worksheets("PowiazaniaMetod").Range("A" & Cells(4, 1).Row & ":" & "W" & Cells(lastrow, 1).Row).Clear
+    WB_AK2.Worksheets("PowiazaniaMetod").Range("A" & Cells(4, 1).Row & ":" & "W" & Cells(lastRow, 1).Row).Clear
   
 Else
     flagKolejneBadanie = False
@@ -503,8 +508,8 @@ End If
 'Metody
 Print #numerPliku, kolumna_1
 
-Dim lastrow, lastColumn As Integer
-lastrow = SH_Metody.Cells(Rows.Count, 1).End(xlUp).Row
+Dim lastRow, lastColumn As Integer
+lastRow = SH_Metody.Cells(Rows.Count, 1).End(xlUp).Row
 lastColumn = SH_Metody.Range("O4").Column
 
     Dim rng As Range
@@ -513,7 +518,7 @@ lastColumn = SH_Metody.Range("O4").Column
     Dim strLinia As String
     Dim i, j As Integer
     
-    For i = 4 To lastrow
+    For i = 4 To lastRow
     strLinia = ""
         For j = 1 To lastColumn
         
@@ -532,10 +537,10 @@ strLinia = strLinia + vbTab
 'Parametry
 Print #numerPliku, kolumna_2
     
-lastrow = SH_Parametry.Cells(Rows.Count, 1).End(xlUp).Row
+lastRow = SH_Parametry.Cells(Rows.Count, 1).End(xlUp).Row
 lastColumn = SH_Parametry.Range("H4").Column
 Set rng = SH_Parametry.Range("A4")
-    For i = 4 To lastrow
+    For i = 4 To lastRow
     strLinia = ""
         For j = 1 To lastColumn
             
@@ -554,10 +559,10 @@ strLinia = strLinia + vbTab
 'Powiazania
 Print #numerPliku, kolumna_3
 
-lastrow = SH_Powiazania.Cells(Rows.Count, 1).End(xlUp).Row
+lastRow = SH_Powiazania.Cells(Rows.Count, 1).End(xlUp).Row
 lastColumn = SH_Powiazania.Range("R4").Column
 Set rng = SH_Powiazania.Range("A4")
-    For i = 4 To lastrow
+    For i = 4 To lastRow
     strLinia = ""
         For j = 1 To lastColumn
         

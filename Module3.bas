@@ -4,6 +4,10 @@ Attribute VB_Name = "Module3"
 Public Const strNoweBadanie As String = "Nowe Badanie"
 Public Const strPracownie As String = "Pracownie"
 Public Const strKonfiguracja As String = "Konfiguracja"
+Public Const strBadania As String = "Badania"
+Public Const strPakiety As String = "Pakiety"
+Public Const strPracownieWysylkowe As String = "PracownieWysylkowe"
+Public Const strSystemy As String = "Systemy"
 
 
 'Nazwy dla ka¿dego z trzech modu³ów pliku DAT

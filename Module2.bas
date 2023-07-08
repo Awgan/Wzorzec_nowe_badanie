@@ -28,17 +28,17 @@ Debug.Print "[ ] pracownie"
     'Kiedy jeden wiersz zawiera mniej pracowni ni¿ drugi, to generuje siê b³êdny plik WzorzecAK2
     'ZnaleŸæ wiersz o najwiêkszej liczbie pracowni
     
-    Dim lastColumn, lastrow As Integer
+    Dim lastColumn, lastRow As Integer
     
     lastColumn = 0
-    lastrow = shPracownie.Cells(Rows.Count, 1).End(xlUp).Row
+    lastRow = shPracownie.Cells(Rows.Count, 1).End(xlUp).Row
     
 'Debug.Print "lastRow: " & lastRow
     
     Dim tempRow, tempColumn As Integer
     tempColumn = 0
     
-    For tempRow = 2 To lastrow
+    For tempRow = 2 To lastRow
 'Debug.Print "tempRow: " & tempRow
         tempColumn = shPracownie.Cells(tempRow, Columns.Count).End(xlToLeft).Column
         
@@ -50,10 +50,11 @@ Debug.Print "[ ] pracownie"
     
     If lastColumn = 0 Then
         MsgBox "Error: function Pracownie(): B³¹d obliczenia liczby kolumn"
+        Exit Function
     End If
     
     
-    ReDim arrPracownie(0 To lastColumn - 1, 0 To lastrow - 1) As Variant
+    ReDim arrPracownie(0 To lastColumn - 1, 0 To lastRow - 1) As Variant
     
     Dim rng As Range
     Set rng = shPracownie.Range(cellAdd)
@@ -61,7 +62,7 @@ Debug.Print "[ ] pracownie"
         'Zamiana Wierszy na Kolumny i,j = j,i
         Dim i, j As Integer
         For i = 0 To lastColumn - 1
-            For j = 0 To lastrow - 1
+            For j = 0 To lastRow - 1
                 arrPracownie(i, j) = rng.Offset(j, i).Value
 
             Next j
@@ -158,7 +159,7 @@ Debug.Print "[x] pickDistinctValue"
 
 End Function
 
-'Uzupenij Metody Wysy³kowe w arkuszu "Metody"
+'Uzupe³nij Metody Wysy³kowe w arkuszu "Metody"
 Sub dodajMetody(ByVal wbName As String, ByRef arrTypyPrac() As Variant)
             
 Debug.Print "[ ] dodajMetody"
@@ -166,14 +167,14 @@ Debug.Print "[ ] dodajMetody"
 
     
     
-    Dim lastrow As Integer
-    lastrow = Workbooks(wbName).Worksheets("Metody").Cells(Rows.Count, 1).End(xlUp).Row + 1
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    Dim lastRow As Integer
+    lastRow = Workbooks(wbName).Worksheets("Metody").Cells(Rows.Count, 1).End(xlUp).Row + 1
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
     
     Dim cellAdd As String
-    cellAdd = "C" & lastrow 'Zacznij w tej komórce
+    cellAdd = "C" & lastRow 'Zacznij w tej komórce
     
     
     
@@ -213,8 +214,10 @@ Debug.Print "[ ] dodajMetody"
                 'Symbol Badania
                 rng.Offset(i - 1, 1) = arrTypyPrac(b, j)
                 'Nazwa metody wysy³kowej
+'                rng.Offset(i - 1, 2) = Application.VLookup(rng.Offset(i - 1, 0).Value, _
+'                Workbooks(wbName).Worksheets("pracownie wysy³kowe").Range("A:B"), 2, False)
                 rng.Offset(i - 1, 2) = Application.VLookup(rng.Offset(i - 1, 0).Value, _
-                Workbooks(wbName).Worksheets("pracownie wysy³kowe").Range("A:B"), 2, False)
+                ThisWorkbook.Worksheets("PracownieWysylkowe").Range("A:B"), 2, False)
                 
                 'Sprawdzanie b³êdów VLookUp
                 If Application.WorksheetFunction.IsNA(rng.Offset(i - 1, 2)) Then
@@ -229,8 +232,10 @@ Debug.Print "[ ] dodajMetody"
                 'Pracownia
                 rng.Offset(i - 1, 4) = arrTypyPrac(i, j)
                 'Aparat
+'                rng.Offset(i - 1, 5) = Application.VLookup(rng.Offset(i - 1, 0).Value, _
+'                Workbooks(wbName).Worksheets("pracownie wysy³kowe").Range("E:F"), 2, False)
                 rng.Offset(i - 1, 5) = Application.VLookup(rng.Offset(i - 1, 0).Value, _
-                Workbooks(wbName).Worksheets("pracownie wysy³kowe").Range("E:F"), 2, False)
+                ThisWorkbook.Worksheets("PracownieWysylkowe").Range("A:C"), 3, False)
                 
                 'Sprawdzanie b³êdów VLookUp
                 If Application.WorksheetFunction.IsNA(rng.Offset(i - 1, 5)) Then
@@ -280,14 +285,14 @@ Debug.Print "[ ] dodajParametryWMetodach"
 
     
     
-    Dim lastrow As Integer
-    lastrow = Workbooks(wbName).Worksheets("ParametryWMetodach").Cells(Rows.Count, 1).End(xlUp).Row + 1
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    Dim lastRow As Integer
+    lastRow = Workbooks(wbName).Worksheets("ParametryWMetodach").Cells(Rows.Count, 1).End(xlUp).Row + 1
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
     
     Dim cellAdd As String
-    cellAdd = "B" & lastrow 'Zacznij w tej komórce
+    cellAdd = "B" & lastRow 'Zacznij w tej komórce
 
 
 
@@ -362,14 +367,14 @@ Debug.Print "[ ] dodajPowiazaniaMetod"
     
     
     
-    Dim lastrow As Integer
-    lastrow = Workbooks(wbName).Worksheets("PowiazaniaMetod").Cells(Rows.Count, 1).End(xlUp).Row + 1
-    If lastrow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
-        lastrow = 4
+    Dim lastRow As Integer
+    lastRow = Workbooks(wbName).Worksheets("PowiazaniaMetod").Cells(Rows.Count, 1).End(xlUp).Row + 1
+    If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
+        lastRow = 4
     End If
     
     Dim cellAdd As String
-    cellAdd = "B" & lastrow 'Zacznij w tej komórce
+    cellAdd = "B" & lastRow 'Zacznij w tej komórce
     
     
         
@@ -440,8 +445,10 @@ Debug.Print "[ ] dodajPowiazaniaMetod"
                 'rng.Offset(i - 1 - k, 17) = ""
             
                 'Sprawdzenie, czy istnieje Badanie
+'                rng.Offset(i - 1 - k, 19) = Application.VLookup(rng.Offset(i - 1 - k, 8).Value, _
+'                Workbooks(wbName).Worksheets("pracownie dom 24.04.23").Range("A:B"), 2, False)
                 rng.Offset(i - 1 - k, 19) = Application.VLookup(rng.Offset(i - 1 - k, 8).Value, _
-                Workbooks(wbName).Worksheets("pracownie dom 24.04.23").Range("A:B"), 2, False)
+                ThisWorkbook.Worksheets("Badania").Range("A:B"), 2, False)
                 
                 'Sprawdzenie b³êdów VLookUp
                 If Application.WorksheetFunction.IsNA(rng.Offset(i - 1 - k, 19).Value) Then
@@ -451,8 +458,10 @@ Debug.Print "[ ] dodajPowiazaniaMetod"
                 End If
                 
                 'Sprawdzenie, czy istnieje System
+'                rng.Offset(i - 1 - k, 21) = Application.VLookup(rng.Offset(i - 1 - k, 6).Value, _
+'                Workbooks(wbName).Worksheets("pracownie dom 24.04.23").Range("P:P"), 1, False)
                 rng.Offset(i - 1 - k, 21) = Application.VLookup(rng.Offset(i - 1 - k, 6).Value, _
-                Workbooks(wbName).Worksheets("pracownie dom 24.04.23").Range("P:P"), 1, False)
+                ThisWorkbook.Worksheets("Systemy").Range("A:A"), 1, False)
                        
                 'Sprawdzenie b³êdów VLookUp
                 If Application.WorksheetFunction.IsNA(rng.Offset(i - 1 - k, 21).Value) Then
