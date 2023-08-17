@@ -9,10 +9,21 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Sub CommandButton1_Click()
 
-Dim str As String
+Application.ScreenUpdating = False
 
-str = "SELECT TRIM(r.SYMBOL) as SYM, TRIM(r.NAZWA) as NAZ FROM BADANIA r WHERE r.PAKIET = '0' ORDER BY SYM ASC;"
-Call czysc_arkusz("Badania")
-Call GetDataFromWZORZEC(str, "Badania", "A")
+    Dim str As String
+    
+    str = "SELECT TRIM(r.SYMBOL) as SYM, TRIM(r.NAZWA) as NAZ FROM BADANIA r WHERE r.PAKIET = '0' ORDER BY SYM ASC;"
+    
+    Call czysc_arkusz("Badania")
+    
+    If GetDataFromWZORZEC(str, "Badania", "A") Then
+        ThisWorkbook.Worksheets("Arkusz1").Range("B16").Value = "Badanie:"
+        ThisWorkbook.Worksheets("Arkusz1").Range("C16").Value = CStr(Now)
+    Else
+    
+    End If
+
+Application.ScreenUpdating = True
 
 End Sub

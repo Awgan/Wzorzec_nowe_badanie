@@ -28,6 +28,12 @@ End Sub
 
 Private Sub CommandButton4_Click()
 
-   stworzDat
+    stworzDat
+
+End Sub
+
+Private Sub CommandButton5_Click()
+
+    dodajPrzedrostkiDoSystemow
 
 End Sub

@@ -11,13 +11,14 @@ Public WB_menu As Workbook
 Public WB_konf As Workbook
 
 Public pathSlashType As String          'dla rozró¿nienia czy plik uruchamiany jest z OneDrivea
-Public pathActual As String
+Public pathActual As String             '
 Public pathCommon As String             'stworzenie jednej œcie¿ki dostêpu dla komputera i chmury
+Public pathKonfig As String             'œcie¿ka do pliku konfiguracyjnego
 
 Public numerPliku As Integer
 
 Public arrBadanieWiersze() As Variant   'nazwy wiersz z tabelki z pierwszego arkusza pliku konfiguracyjnego
-Public plikKonfig As String             'plik z danymi o nowym badaniu
+Public plikKonfigNazwaiRozszerzenie As String             'plik z danymi o nowym badaniu
 Public plikKonfigNazwa As String        'plik z danymi o nowym badaniu, nazwa pliku
 
 Public Const wzorzecAK As String = "WzorzecAK2.xlsx"
@@ -25,21 +26,6 @@ Public Const plikDat As String = "Wzor_02042020.dat"
 
 Public errChecking As String
 
-
-Sub ttt()
-
-Dim wbpath, cpath As String
-'wbpath = Workbooks("construct_02.xlsm").Path
-'MsgBox wbpath
-
-MsgBox "flagKolejnebadanie: " & flagKolejneBadanie
-
-'FileCopy wbpath & "\construct_01.xlsm", wbpath & "\c_copy.txt"
-
-'cpath = "C:\Users\" & Environ$("Username") & "\OneDrive - Alab Laboratoria Sp. z o.o\Scripts\Wzorzec_nowe_badanie\"
-
-'MsgBox CurDir
-End Sub
 
 
 'CommandButton 1
@@ -53,11 +39,11 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
                             'False - czyœci plik i dodaje badania od nowa
 
     
-    Set WB_menu = ActiveWorkbook
+    Set WB_menu = ThisWorkbook
     
     
     
-    'Okreœlenie pochodzenia pliku: komputer lub chmura
+    'Okreœlenie pochodzenia pliku Menu: komputer lub chmura
     If InStr(WB_menu.Path, "\") <> 0 Then
     
         pathSlashType = "\" 'dla pliku bezpoœrednio z komputera
@@ -68,7 +54,7 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
     
     
     
-    
+    'Wybierz i otwórz plik
     Dim konfFilePath As String
     
     Dim fd As Office.FileDialog
@@ -83,12 +69,13 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
         konfFilePath = fd.SelectedItems(1)
         WB_menu.Sheets(1).Range("A4").Interior.ColorIndex = 4
     Else
-        
+        'Je¿eli brak pliku, toresetuj kolory i buttony i Exit Sub
         WB_menu.Sheets(1).Range("A1:A13").Clear
         WB_menu.Sheets(1).Range("A4").Interior.ColorIndex = 3
         WB_menu.Sheets(1).CommandButton2.Enabled = False
         WB_menu.Sheets(1).CommandButton3.Enabled = False
         WB_menu.Sheets(1).CommandButton4.Enabled = False
+        WB_menu.Sheets(1).CommandButton5.Enabled = False
         Exit Sub
     End If
     
@@ -97,22 +84,26 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
     
     'Przygotuj nazwê pliku
     'Przygotuj wspóln¹ œcie¿kê dostêpu do pliku
-
+    
+    Dim lastSlash As Integer
+    
     If pathSlashType = "\" Then
         'Normalna œcie¿ka dostêpu dla Windowsów
         
-        Dim lastBSlash As Integer
-        lastBSlash = InStrRev(konfFilePath, "\")
+        'Dim lastBSlash As Integer
+        lastSlash = InStrRev(konfFilePath, "\")
         
         pathActual = WB_menu.Path
         
+        'DO USUNIÊCIA
+        pathKonfig = Left(konfFilePath, lastSlash)
         'Redukcja do nazwy pliku z rozszerzeniem
-        konfFilePath = Right(konfFilePath, Len(konfFilePath) - lastBSlash)
-    
+        'konfFilePath = Right(konfFilePath, Len(konfFilePath) - lastSlash)
+            
     Else
         'Przypadek, kiedy plik wskazywany jest jako pochodz¹cy z 'OneDrivea'
         
-        Dim lastSlash As Integer
+        'Dim lastSlash As Integer
         lastSlash = InStrRev(konfFilePath, "/")
         
         'Sk³adanie œcie¿ki z dwóch: CurDir daje œcie¿kê z liter¹ dysku na komputerze
@@ -124,28 +115,35 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
         pathActual = Left(CurDir, InStr(CurDir, "\Documents") - 1) & _
         Replace(Right(tempName, Len(tempName) - InStrRev(tempName, "/Documents/") - 9), "/", "\")
         
+        'DO USUNIÊCIA
+        'pathKonfig = Left(konfFilePath, lastSlash)
+        pathKonfig = Left(CurDir, InStr(CurDir, "\Documents") - 1) & _
+        Replace(Right(tempName, Len(tempName) - InStrRev(tempName, "/Documents/") - 9), "/", "\")
         'Redukcja do nazwy pliku z rozszerzeniem
-        konfFilePath = Right(konfFilePath, Len(konfFilePath) - lastSlash)
+        'konfFilePath = Right(konfFilePath, Len(konfFilePath) - lastSlash)
     
     End If
     'Debug.Print "pathActual: " & pathActual
+    
 
+    'pathKonfig = Left(konfFilePath, lastSlash)
+    'Redukcja do nazwy pliku z rozszerzeniem
         
-
-
-
-    plikKonfig = konfFilePath
-    plikKonfigNazwa = Left(plikKonfig, InStrRev(plikKonfig, ".") - 1)
+    'Redukcja do nazwy pliku z rozszerzeniem
+    plikKonfigNazwaiRozszerzenie = Right(konfFilePath, Len(konfFilePath) - lastSlash)
+    plikKonfigNazwa = Left(plikKonfigNazwaiRozszerzenie, InStrRev(plikKonfigNazwaiRozszerzenie, ".") - 1)
+        
     
     
-    
-    WB_menu.Sheets(1).Range("E1").Value = pathActual        'dla debugowania
-    WB_menu.Sheets(1).Range("E2").Value = WB_menu.Path
-    WB_menu.Sheets(1).Range("E3").Value = plikKonfig
-    WB_menu.Sheets(1).Range("E4").Value = plikKonfigNazwa   'dla debugowania
+    'WB_menu.Sheets(1).Range("E1").Value = pathActual        'dla debugowania
+    'WB_menu.Sheets(1).Range("E2").Value = WB_menu.Path
+    WB_menu.Sheets(1).Range("E3").Value = plikKonfigNazwaiRozszerzenie
+    'WB_menu.Sheets(1).Range("E4").Value = plikKonfigNazwa   'dla debugowania
+    'WB_menu.Sheets(1).Range("E5").Value = pathKonfig
     WB_menu.Sheets(1).CommandButton2.Enabled = False
     WB_menu.Sheets(1).CommandButton3.Enabled = False
     WB_menu.Sheets(1).CommandButton4.Enabled = False
+    WB_menu.Sheets(1).CommandButton5.Enabled = False
     WB_menu.Sheets(1).Range("A7:A13").Clear
     
     
@@ -153,6 +151,7 @@ flagKolejneBadanie = True   'Je¿eli zostawimy tu true, to If w buttonie 3 nie bê
     flagKonfWczyt = True
     WB_menu.Sheets(1).CommandButton2.Enabled = True
 
+    Call otworz_plik_konfiguracyjny
 
 End Sub
 
@@ -160,7 +159,12 @@ End Sub
 'CommandButton 2
 Sub otworz_plik_konfiguracyjny()
 
+Application.ScreenUpdating = False
 
+
+
+'Czy plik jest otwarty i jest w kolekcji Workbooków
+'informacja u¿yta przy kopiowaniu pliku
 Dim flagWB As Boolean
 flagWB = False
 
@@ -168,8 +172,8 @@ Dim wName As Workbook
         
 For Each wName In Workbooks
 
-    If wName.name = plikKonfig Then
-        Debug.Print "wName: JEST"
+    If wName.name = plikKonfigNazwaiRozszerzenie Then
+        'Debug.Print "wName: JEST"
         flagWB = True
     End If
 Next wName
@@ -179,11 +183,11 @@ Next wName
     
     If flagKonfWczyt Then
     
-        '#KOPIOWANIE PLIKU
+'#KOPIOWANIE PLIKU
         'Je¿eli pracujesz z OneDrive, to skrypt nie zadzia³a w tej wersji.
         'Problemy z manipulacj¹ plikami za pomoc¹ funkcji VBA
         '
-        If Left(pathActual, 4) = "http" Then
+        If Left(pathKonfig, 4) = "http" Then
         
             MsgBox "Kopia pliku konfiguracyjnego badnia nie zosta³a utworzona!" & vbCrLf & vbCrLf _
             & "Skrypt nie jest przygotowany do pracy z OneDrive oraz innymi rozwi¹zaniami chmurowymi." & vbCrLf _
@@ -191,13 +195,12 @@ Next wName
             vbExclamation, "Kopia Zapasowa"
             
         Else
-        
-            '###ToDo:
+            
             'Stwórz kopiê pliku, aby zosta³ orygina³
     
             Dim pKonf, eKonf As String
-            pKonf = Left(plikKonfig, InStrRev(plikKonfig, ".") - 1) '
-            eKonf = Right(plikKonfig, 4)
+            pKonf = Left(plikKonfigNazwaiRozszerzenie, InStrRev(plikKonfigNazwaiRozszerzenie, ".") - 1) '
+            eKonf = Right(plikKonfigNazwaiRozszerzenie, 4)
                         
                         
             'Je¿eli workbook jest otwarty, to kopiowanie nie uda siê
@@ -208,27 +211,30 @@ Next wName
                 
                 'Kopiowanie komputer
                 
-                FileCopy CStr(pathActual & "\" & plikKonfig), CStr(pathActual & "\" & pKonf & "-oryginal." & eKonf)
+                FileCopy CStr(pathKonfig & "\" & plikKonfigNazwaiRozszerzenie), CStr(pathKonfig & "\" & pKonf & "-oryginal." & eKonf)
             Else
-                MsgBox "Plik jest otwarty, nie mo¿na zrobiæ kopii przed edycj¹.", , "Kopia Zapasowa"
+                MsgBox "Plik jest otwarty, nie mo¿na zrobiæ kopi przed edycj¹.", , "Kopia Zapasowa"
             End If
         End If
-        '#KOPIOWANIE PLIKU: KONIEC
+'#KOPIOWANIE PLIKU: KONIEC
+
+
         
         
-        
+        'Je¿eli plik nie jest otwarty, to otwórz i przypisz do zmiennej
         If flagWB = False Then
-            Set WB_konf = Workbooks.Open(pathActual & pathSlashType & plikKonfig)
+            Set WB_konf = Workbooks.Open(pathKonfig & pathSlashType & plikKonfigNazwaiRozszerzenie)
             'flagK = True
             'Debug.Print "WB_konf.name #1: " & WB_konf.name
             
         Else
-                
-            Set WB_konf = Workbooks(plikKonfig)
+            'Je¿eli otwarty, to tylko przypisz do zmiennej
+            Set WB_konf = Workbooks(plikKonfigNazwaiRozszerzenie)
             WB_konf.Activate
             'Debug.Print "WB_konf.name #2: " & WB_konf.name
         
         End If
+        
         
         
         
@@ -238,6 +244,7 @@ Next wName
             WB_menu.Sheets(1).CommandButton2.Enabled = False
             WB_menu.Sheets(1).CommandButton3.Enabled = False
             WB_menu.Sheets(1).CommandButton4.Enabled = False
+            WB_menu.Sheets(1).CommandButton5.Enabled = False
             WB_menu.Sheets(1).Range("A7").Interior.ColorIndex = 3
             MsgBox "Brakuje pliku konfiguracyjnego", , "Brak Pliku Konfiguracyjnego"
             Exit Sub
@@ -246,23 +253,26 @@ Next wName
         
         flagKonfPrzygot = True
         WB_menu.Sheets(1).CommandButton3.Enabled = True
+        WB_menu.Sheets(1).CommandButton5.Enabled = True
         WB_menu.Sheets(1).Range("A7").Interior.ColorIndex = 4
-    Else
+    
+    Else 'If flagKonfWczyt
         flagKonfPrzygot = False
         WB_menu.Sheets(1).CommandButton2.Enabled = False
         WB_menu.Sheets(1).CommandButton3.Enabled = False
         WB_menu.Sheets(1).CommandButton4.Enabled = False
+        WB_menu.Sheets(1).CommandButton5.Enabled = False
         WB_menu.Sheets(1).Range("A7").Interior.ColorIndex = 3
         MsgBox "Brakuje pliku konfiguracyjnego", , "Brak Pliku Konfiguracyjnego"
         Exit Sub
     End If
     
-
     
-    Dim flagShPrac As Boolean
-    flagShPrac = False
 
     'SprawdŸ, czy plik zawiera arkusz o nazwie 'Pracownie'
+    Dim flagShPrac As Boolean
+    flagShPrac = False
+    
     Dim sh As Worksheet
     For Each sh In WB_konf.Worksheets
     
@@ -293,21 +303,39 @@ Next wName
         lastColumn = shPracownie.Cells(2, Columns.Count).End(xlToLeft).Column - 1 'zaczynamy od 2 wiersza, poniewa¿ w 1 wierszu zdarzaj¹ siê artefakty, np. w postaci zer(0)
         lastRow = shPracownie.Cells(Rows.Count, 1).End(xlUp).Row - 1
         
+        
+        
+        'SprawdŸ b³êdne komórki i zaznacz na czerwono
         Dim rng As Range
         Set rng = shPracownie.Range("A1")
         
         Dim i, j As Integer
         For i = 0 To lastColumn
-            For j = 1 To lastRow
+            For j = 0 To lastRow
         
-            'SprawdŸ b³êdne komórki i zaznacz na czerwono
-                If rng.Offset(j, i).Value = "" Or _
-                i <> 0 And Left(CStr(rng.Offset(j, i).Value), 2) <> "X-" Or Left(CStr(rng.Offset(j, i).Value), 7) = "X-LIMBA" _
-                Or i = 0 And czy_pakiet(CStr(rng.Offset(j, i).Value), WB_menu.Worksheets(strPakiety)) Then
+            
+                If _
+                    j = 0 And czy_system(rng.Offset(j, i).Value, WB_menu.Worksheets(strSystemy)) = False _
+                Or _
+                    j <> 0 And rng.Offset(j, i).Value = "" _
+                Or _
+                    j <> 0 And i <> 0 And czy_pracownia_wysylkowa(CStr(rng.Offset(j, i)), WB_menu.Worksheets("PracownieWysylkowe")) = False _
+                Or _
+                    j <> 0 And i = 0 And czy_pakiet(CStr(rng.Offset(j, i).Value), WB_menu.Worksheets(strPakiety)) _
+                Or _
+                    j <> 0 And i = 0 And czy_badanie(CStr(rng.Offset(j, i).Value), WB_menu.Worksheets(strBadania)) = False Then
                     
-                    'Debug.Print "Jest b³êdna komórka"
+                    'Zaznacz na czerwono
                     rng.Offset(j, i).Interior.Color = RGB(255, 100, 100)
-        
+                
+                ElseIf _
+                    j <> 0 And i <> 0 And _
+                    ((CStr(rng.Offset(0, i).Value) = "TUCHOLA" And CStr(rng.Offset(j, i).Value) <> "X-BYDW") _
+                    Or (CStr(rng.Offset(0, i).Value) = "DARLOWO") And CStr(rng.Offset(j, i).Value) <> "X-KOSZ") Then
+                    
+                    'Zaznacz na pomarañczowo
+                    rng.Offset(j, i).Interior.Color = RGB(255, 140, 0)
+                    
                 End If
         
             Next j
@@ -315,6 +343,7 @@ Next wName
         
         WB_konf.Activate
         shPracownie.Range("A1").Select
+        
     
 'Wyœwietl komunikat, ¿e brakuje arkusza o nazwie 'Pracownie' i zakoñcz sub-a
     Else
@@ -322,6 +351,7 @@ Next wName
         flagKonfPrzygot = False
         WB_menu.Activate
         WB_menu.Sheets(1).CommandButton3.Enabled = False
+        WB_menu.Sheets(1).CommandButton5.Enabled = False
         WB_menu.Sheets(1).Range("A7").Interior.ColorIndex = 3
         MsgBox "Brak arkusza: ""Pracownie""" & vbCrLf & _
         "Zmieñ nazwê odpowiedniego arkusza na ""Pracownie"" ", , "Brak Arkusza PRACOWNIE"
@@ -329,12 +359,15 @@ Next wName
     
     End If
 
+Application.ScreenUpdating = True
+
 End Sub
 
 
 'CommandButton 3
 Sub stworzAK2()
     
+Application.ScreenUpdating = False
     
     'initAll
     
@@ -365,6 +398,8 @@ Sub stworzAK2()
         MsgBox "Brakuje pliku ""WzorzecAK2"" ", , "Brak Pliku WZORZECAK2"
         Exit Sub
     End If
+    
+    
   
 
 'Czy dopisaæ kolejne badania do pliku WzorzecAK2
@@ -384,6 +419,7 @@ End If
 If odp = 7 Then     '7 = No; formatowanie pliku WzorzecAK2
 
 'Czyszczenie pliku WzorzecAK2
+'Kasujemy wszystkie wpisy oprócz pierwszych wierszy z nazwami kolumn i przyk³adami
     Dim lastRow
     lastRow = WB_AK2.Worksheets("Metody").Cells(Rows.Count, 1).End(xlUp).Row
     If lastRow < 4 Then 'Ograniczenie, aby nie skasowaæ dwóch pierwszych wierszy
@@ -409,10 +445,14 @@ Else
 
 End If
   
+  
+  
    
 'Wyci¹gnij pojedyncze nazwy pracowni
     Dim disLabor()
     disLabor = pickDistinctValue(Pracownie(WB_konf.name))
+    
+    
     
    
     
@@ -424,21 +464,26 @@ End If
     Call dodajPowiazaniaMetod(WB_AK2.name, Pracownie(WB_konf.name))
     
     
+    
+    
 'Aktywacja kolejnego Buttona 4
     flagWzorPrzygot = True
     WB_menu.Sheets(1).CommandButton4.Enabled = True
     WB_menu.Sheets(1).Range("A10").Interior.ColorIndex = 4
     
     WB_AK2.Activate
-    WB_AK2.Worksheets("Metody").Activate
-    WB_AK2.Worksheets("Metody").Range("A1").Select
+    'WB_AK2.Worksheets("Metody").Activate
+    'WB_AK2.Worksheets("Metody").Range("A1").Select
     WB_AK2.Worksheets("ParametryWMetodach").Activate
     WB_AK2.Worksheets("ParametryWMetodach").Range("A1").Select
     WB_AK2.Worksheets("PowiazaniaMetod").Activate
     WB_AK2.Worksheets("PowiazaniaMetod").Range("A1").Select
+    WB_AK2.Worksheets("Metody").Activate
+    WB_AK2.Worksheets("Metody").Range("A1").Select
     
     flagKolejneBadanie = True
 
+Application.ScreenUpdating = True
     
     MsgBox errChecking
 
@@ -446,6 +491,10 @@ End Sub
 
 'CommandButton 4
 Sub stworzDat()
+
+Application.ScreenUpdating = False
+
+
 
 Dim WB_wz As Workbook
 Set WB_wz = Workbooks(wzorzecAK)
@@ -458,7 +507,7 @@ Set SH_Powiazania = WB_wz.Sheets("PowiazaniaMetod")
 
 
 Dim Wzorzec_dat As String
-Wzorzec_dat = pathActual & "\" & plikDat
+Wzorzec_dat = pathKonfig & "\" & plikDat
 
 
 
@@ -491,9 +540,8 @@ Wzorzec_dat = pathActual & "\" & plikDat
 Debug.Print "wzorzec_dat: " & Wzorzec_dat
 
 
-
+'Nadaj numer dla otwieranego pliku i otwórz plik
 numerPliku = FreeFile
-
 
 If Wzorzec_dat <> "" Then
     Open Wzorzec_dat For Output As numerPliku
@@ -580,11 +628,65 @@ Close numerPliku
 
 
 
+Application.ScreenUpdating = True
+
+
+'Otwórz plik DAT w notepad++
 Dim returnvalue As Integer
 returnvalue = Shell("C:\Program Files\Notepad++\notepad++.exe " & """" & Wzorzec_dat & """", vbNormalFocus)
 'Debug.Print "returnvalue: " & returnvalue
 WB_menu.Sheets(1).Range("A13").Interior.ColorIndex = 4
+
+
 End Sub
 
 
+Sub dodajPrzedrostkiDoSystemow()
+    Application.ScreenUpdating = False
+    
+    Dim shPracownie As Worksheet
+    Set shPracownie = WB_konf.Worksheets("Pracownie")
+    
+    Dim lastColumn As Integer
+    lastColumn = shPracownie.Cells(1, Columns.Count).End(xlToLeft).Column - 1
+    
+    Dim rng As Range
+    Set rng = shPracownie.Range("A1")
+    
+    Dim strTemp As String
+    Const strConstLab As String = "lab:"
+    Dim i As Integer
+    'Loop przez wszystkie SYSTEMY
+    'Je¿eli zawiera "lab:", to omijaj
+    For i = 1 To lastColumn
+    
+        strTemp = rng.Offset(0, i).Value
+        
+        If Left(strTemp, 4) <> strConstLab Then
+            
+            strTemp = DodajAfiks(strTemp, strConstLab, True)
+            rng.Offset(0, i).Value = strTemp
+        
+        End If
+    
+    Next i
+    
+    Dim ws As Worksheet
+    'Loop przez wszystkie worksheety
+    'Je¿eliworksheet nie jes "Pracownie", to usuñ
+    'Do generatora DATów ze strony Reportera musi byæ tylko jeden worksheet
+    For Each ws In WB_konf.Worksheets
+    
+        If ws.name <> "Pracownie" Then
+            
+            Application.DisplayAlerts = False
+            WB_konf.Sheets(ws.name).Delete
+            Application.DisplayAlerts = True
+            
+        End If
+    
+    Next ws
+    
+    Application.ScreenUpdating = True
+End Sub
 

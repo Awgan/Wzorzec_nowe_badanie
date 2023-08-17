@@ -19,10 +19,10 @@ Sub ConnectDB()
         
     ODBCDriver = "Firebird/InterBase(r) driver"
     Server_Name = ""
-    Database_Name = "XXXX"
-    User_ID = "XXXX"
-    Password = "XXXX"
-    port = "xxxx"
+    Database_Name = "***"
+    User_ID = "SYSDBA"
+    Password = "***"
+    port = "3050"
 
 '   connOptions = ";OPTION=" 'Convert LongLong to Int
 
@@ -54,7 +54,7 @@ FailedConnection:
 
 End Sub
 
-Public Function GetDataFromWZORZEC(Optional strSQL As String = "", Optional strArku As String = "", Optional strKolu As String = "A")
+Public Function GetDataFromWZORZEC(Optional strSQL As String = "", Optional strArku As String = "", Optional strKolu As String = "A") As Boolean
 
     'Dim strSQL As String
     Dim rs As New ADODB.Recordset
@@ -119,6 +119,11 @@ Public Function GetDataFromWZORZEC(Optional strSQL As String = "", Optional strA
     'Wersja II, do arkusza
     rs.MoveFirst
     Call rng.CopyFromRecordset(rs)
+    If rs.EOF = True Then
+        GetDataFromWZORZEC = True
+    Else
+        GetDataFromWZORZEC = False
+    End If
     
     
 CloseSub:

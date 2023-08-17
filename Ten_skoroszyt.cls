@@ -12,6 +12,7 @@ Private Sub Workbook_Open()
 Sheets(1).CommandButton2.Enabled = False
 Sheets(1).CommandButton3.Enabled = False
 Sheets(1).CommandButton4.Enabled = False
+Sheets(1).CommandButton5.Enabled = False
 Sheets(1).Range("E1:E13").Clear
 Sheets(1).Range("A1:A13").Clear
 
